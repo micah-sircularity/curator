@@ -2,17 +2,18 @@ import uvicorn
 from fastapi import FastAPI
 from clarifying_questions import Clarifyingrouter
 from detail_extraction import detail_router
-from curator import Curator
+from curator_new import curator_new
 import logfire
 import os
 
 app = FastAPI(title="Curator AI Backend")
 
+app.include_router(curator_new)
 # Include the router from clarifying_questions.py
 app.include_router(Clarifyingrouter)
 # Include the router from detail_extraction.py
 app.include_router(detail_router)
-app.include_router(Curator)
+
 
 logfire.instrument_fastapi(app)
 logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all"))

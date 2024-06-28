@@ -7,8 +7,8 @@ import google.generativeai as genai
 
 
 openai_client = OpenAI()
-logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all")) 
-logfire.instrument_openai(openai_client)
+#logfire.configure(pydantic_plugin=logfire.PydanticPlugin(record="all")) 
+#logfire.instrument_openai(openai_client)
 
 
 def create_client():

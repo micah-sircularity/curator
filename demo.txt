@@ -1,0 +1,3 @@
+keyword='beach activities in Louisville KY'
+keyword='beach fun in Louisville' location='us'
+keyword='beach' location='Louisville, KY' date=<DateOptions.ANY: 'any'>

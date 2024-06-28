@@ -3,10 +3,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, ValidationError
 from typing import Literal, Iterable
 from generate_images import generate_image
-from fireworks_config import logfire, create_gemini_client
+from fireworks_config import logfire
 from run import get_search_results, run_match
+import instructor
+import openai
 
-Curator = APIRouter()
+curator_new = APIRouter()
 
 class Activity(BaseModel):
     title: str = Field(..., description="Title of the activity")
@@ -26,17 +28,21 @@ class Experience(BaseModel):
     keywords: List[str] = Field(..., description="Keywords that best describe the experience")
     song_of_the_experience: str = Field(..., description="A song that encapsulates the mood or theme of the experience")
 
-client = create_gemini_client("models/gemini-1.5-flash-latest")
-
-@Curator.post("/curation", response_model=List[Experience])
+client = instructor.from_openai(
+    openai.OpenAI(), mode=instructor.Mode.MD_JSON
+)  
+@curator_new.post("/curator_new", response_model=List[Experience])
 def create_experience(query: str) -> List[Experience]:
     try:
         results = get_search_results(query)
+        if not results:
+            raise HTTPException(status_code=404, detail="No search results found")
         results_str = "\n".join(run_match(result) for result in results)
         with open("results.txt", "w") as file:
             file.write(results_str)
         # Step 4: Feed the search results to the language model
         experiences: List[Experience] = client.chat.completions.create(
+            model="gpt-4o",
             response_model=Iterable[Experience],
             messages=[
                 {
@@ -83,15 +89,6 @@ Event
 Ensure that each experience is unique and contains 
 a mix of the provided activity types without repeating any 
 activity type within a single experience.
-
-
-
-
-
-
-
-
-
 
           """,
                 },
