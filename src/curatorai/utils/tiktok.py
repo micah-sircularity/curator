@@ -1,6 +1,7 @@
 import http.client
 import urllib.parse
 import pprint
+import json
 
 def search_tiktok_videos(keyword, location):
     conn = http.client.HTTPSConnection("tiktok-scraper7.p.rapidapi.com")
@@ -14,7 +15,12 @@ def search_tiktok_videos(keyword, location):
     res = conn.getresponse()
     data = res.read()
     results = data.decode("utf-8")
-    return results
+
+    # Parse the JSON response
+    results_json = json.loads(results)
+    videos = results_json['data']['videos']
+    parsed_videos = [{'title': video['title'], 'video_url': video['play']} for video in videos]
+    return parsed_videos
 
 #run = search_tiktok_videos("fancy restaurants in louisville kentucky", "us")
 #pprint.pprint(run)

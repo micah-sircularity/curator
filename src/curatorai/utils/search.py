@@ -1,20 +1,8 @@
 from typing import List
+from brave import Brave
 import json
-
-from exa_py import Exa
+import os
 from pydantic import BaseModel, Field
-from langchain_text_splitters import RecursiveJsonSplitter
-
-
-from query_generations import query_generation
-
-# Initialize the Exa client with the API key
-exa = Exa(api_key="13368f79-5f89-487e-b860-3c94cdeaa0ae")
-
-class ExtractedDetails(BaseModel):
-    Entities: str = Field(..., description="Entities")
-    chunks: str = Field(..., description="separate the text chunks by relevance")
-
 
 class SearchResults(BaseModel):
     ResultText: str
@@ -23,27 +11,20 @@ class SearchResults(BaseModel):
     ResultID: str
     QueryText: str
 
-splitter = RecursiveJsonSplitter(max_chunk_size=2000)
-
-    
-
-def search(query: str) -> List[SearchResults]:
-    query_list = query_generation(query)
+def search(query: str, num_results: int) -> List[SearchResults]:
+    brave = Brave(api_key=os.getenv("BRAVE_API_KEY"))
+    search_results = brave.search(q=query, raw=True, num_results=num_results)
     result_objects = []
 
-    for item in query_list.QueryList:
-        search_response = exa.search_and_contents(item,use_autoprompt=True,
-        type="magic", num_results=5)
-        for result in search_response.results:
-            # Accessing properties directly
-            search_result = SearchResults(
-                ResultText=result.text,  # Adjusted to use the highlights property
-                ResultURL=result.url,
-                ResultTitle=result.title,
-                ResultID=result.id,
-                QueryText=item
-            )
-            result_objects.append(search_result)            
+    for result in search_results:
+        search_result = SearchResults(
+            ResultText=result['text'],  # Assuming 'text' is the key for the result text
+            ResultURL=result['url'],  # Assuming 'url' is the key for the result URL
+            ResultTitle=result['title'],  # Assuming 'title' is the key for the result title
+            ResultID=result['id'],  # Assuming 'id' is the key for the result ID
+            QueryText=query  # The original query text
+        )
+        result_objects.append(search_result)
 
     return result_objects
 

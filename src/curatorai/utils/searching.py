@@ -1,12 +1,13 @@
 from typing import List
 import json
+import os
 
 from exa_py import Exa
 from pydantic import BaseModel, Field
 from langchain_text_splitters import RecursiveJsonSplitter
 
 # Initialize the Exa client with the API key
-exa = Exa(api_key="13368f79-5f89-487e-b860-3c94cdeaa0ae")
+exa = Exa(api_key=os.getenv("EXA_API_KEY"))
 
 class ExtractedDetails(BaseModel):
     Entities: str = Field(..., description="Entities")

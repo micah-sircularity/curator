@@ -6,11 +6,12 @@ client = ApifyClient(os.getenv("APIFY_API_KEY"))
 
 # Prepare the Actor input
 
-def get_facebook_events(search_queries, start_urls, max_events):
+def get_facebook_events(search_queries):
+    if not isinstance(search_queries, list):
+        search_queries = [search_queries]
     run_input = {
         "searchQueries": search_queries,
-        "startUrls": start_urls,
-        "maxEvents": max_events,
+        "maxEvents": 10,
     }
     run = client.actor("UZBnerCFBo5FgGouO").call(run_input=run_input)
     results = []
@@ -19,7 +20,6 @@ def get_facebook_events(search_queries, start_urls, max_events):
         results.append(item)
     return results
 
-
-#run = get_facebook_events(["louisville festivalls"], [], 10)
+#run = get_facebook_events(["louisville festivalls"])
 #print(run)
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
-import instructor
-import openai
 from typing import Iterable, List, Union
 from pydantic import BaseModel, Field
 from enum import Enum
+from fireworks_config import create_client
 
+client = create_client()
 
 class DateOptions(Enum):
         ANY = 'any'
@@ -18,44 +18,44 @@ class DateOptions(Enum):
 
 
 class EventSearch(BaseModel):
-    keyword: str
+    event_search: str
     location: str
     date: DateOptions
 
 
 class FacebookSearch(BaseModel):
-    keyword: str
+    facebook_event_search: str
     max_results: int = 20
 
 
 class HashtagSearch(BaseModel):
-    hashtag: str = Field(..., description="The hashtag to search for")
+    instagram_search: str = Field(..., description="The hashtag to search for")
 
 
 class FindRelevantHashtags:
-     query: str = Field(..., description="The hashtag to search for")
+     hashtag_search: str = Field(..., description="The hashtag to search for")
 
 
 class GoogleSearch(BaseModel):
-    keyword: str = Field(..., description="The google search query to search for")
+    google_search: str = Field(..., description="The google search query to search for")
 
 class TiktokSearch(BaseModel):
-    keyword: str = Field(..., description="The tiktok search query to search for")
-    location: str = Field(default="us", description="The location to search for")
+    tiktok_search: str = Field(..., description="The tiktok search query to search for")
+    tiktok_location: str = Field(default="us", description="The location to search for")
 
 class YelpSearch(BaseModel):
-    keyword: str = Field(..., description="The yelp search query to search for")
-    location: str = Field(..., description="The location to search for")
+    yelp_search: str = Field(..., description="The yelp search query to search for")
+    yelp_location: str = Field(..., description="The location to search for")
 
 
-client = instructor.from_openai(
-    openai.OpenAI(), mode=instructor.Mode.PARALLEL_TOOLS
-)  
+#client = instructor.from_openai(
+ #   openai.OpenAI(), mode=instructor.Mode.PARALLEL_TOOLS
+#)#  
 
 
 def get_search_results(prompt: str):    
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="accounts/fireworks/models/mixtral-8x7b-instruct",
     messages=[
         {"role": "system", "content": """
         You are an expert experience curator.
@@ -113,7 +113,7 @@ You should always use more than one tool, and you should always use tiktok, goog
          """},
         {"role": "user", "content": prompt}
     ],
-    response_model = Iterable[EventSearch | FacebookSearch | HashtagSearch | GoogleSearch | TiktokSearch | YelpSearch]
+    response_model = List[Union[EventSearch, HashtagSearch, GoogleSearch, TiktokSearch, YelpSearch]]
 )
     return response
 
@@ -121,4 +121,4 @@ You should always use more than one tool, and you should always use tiktok, goog
 #results = (get_search_results("I want to plan a day in Louisville, Kentucky like I'm at the beach"))
 
 #for result in results:
-    #print(f"Tool: {type(result).__name__}, Result: {result}")
+#      print(f"Tool: {type(result).__name__}, Result: {result}")
